@@ -2,23 +2,23 @@
 
 Funciones en R que permite el raspado de una sesión As Biwenger
 
-## obtener token.
+### Obtener token.
 
 token <- get_token( email='xxx@gmail.com', password='****')
 
-## obtener ligas.
+### Obtener ligas.
 
 ligas <- get_leagues(token)
 
-## seleccionar liga/ obtener ids.
+### Seleccionar liga/ obtener ids.
 
 ids<-set_ids(ligas,1)
 
-## Obtener miembros
+### Obtener miembros
 
-#miembros<-get_members(token,ids)
+miembros<-get_members(token,ids)
 
-## Obtener compras/ventas.
+### Obtener compras/ventas.
 
 movimientos<-get_movements(token, ids, miembros)
 summary<-sapply(movimientos, sum)
