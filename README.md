@@ -4,7 +4,7 @@ Funciones en R que permite el raspado de una sesión As Biwenger
 
 ## obtener token.
 
-token <- get_token( mail='xxx@gmail.com', password='****')
+token <- get_token( email='xxx@gmail.com', password='****')
 
 ## obtener ligas.
 
