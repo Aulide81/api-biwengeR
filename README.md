@@ -21,6 +21,9 @@ miembros<-get_members(token,ids)
 ### Obtener compras/ventas.
 
 movimientos<-get_movements(token, ids, miembros)
+
 summary<-sapply(movimientos, sum)
+
 summary<-data.frame("Balance"=summary)
+
 summary
