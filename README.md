@@ -1,6 +1,6 @@
 # api-biwengeR
 
-Funciones en R que permite el raspado de una sesión As Biwenger. La única dependencia es la libreria httr
+Funciones en R que permite el raspado de una sesión As Biwenger. La única dependencia es la libreria `httr`
 
 ### Descargar/Cargar Funciones.
 
