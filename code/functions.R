@@ -59,6 +59,7 @@ get_members<-function(token, list_ids){
   return(miembros)
   
 }
+
 get_movements<-function(token, list_ids, members, amount_init=50000000, step=500){
   
   # Inicializamos el balance
@@ -70,7 +71,8 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
   })
   names(balance)<-members$Name
   
-  url<-"https://biwenger.as.com/api/v2/league/1648876/board?offset=__OFFSET__&limit=__step__"
+  url<-"https://biwenger.as.com/api/v2/__league__/1648876/board?offset=__OFFSET__&limit=__step__"
+  url<-gsub("__league__",list_ids$id_league,url)
   url<-gsub("__step__",step,url)
   
   OFFSET<-0
@@ -88,11 +90,14 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
         break
       }
       
-      if (div$type %in% c("transfer","market")){
+      if (div$type %in% c("transfer","market", "roundFinished")){
+        
+        if (div$type %in% c("transfer","market")){
+        
         position<-1
         for(mov in div$content){
           
-          #Existe comrpador
+          #Existe comprador
           if ('to' %in% names(mov)){
             if (div$date %in% names(balance[[mov$to$name]])){
               amount<-c(-mov$amount)
@@ -117,9 +122,37 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
             }
           }
         }
+        
+      }else{
+        
+        # Los bonus de jornada
+        
+        mov <- div$content
+        jornada <- mov$round$name
+        
+        for (resultado in mov$results){
+          
+          if (jornada %in% names(balance[[resultado$user$name]])){
+            
+            bonus<-c(resultado$bonus)
+            balance[[resultado$user$name]][jornada] <- bonus
+            
+          }else{
+            
+            bonus<-c(resultado$bonus)
+            names(bonus) <- jornada
+            balance[[resultado$user$name]] <- c(balance[[resultado$user$name]], bonus)
+            
+          }
+          
+        }
+        
       }
     }
+      
+    }
     OFFSET<-OFFSET+step
+    Sys.sleep(15)
   }
   
   return(balance)
