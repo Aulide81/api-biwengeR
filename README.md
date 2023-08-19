@@ -1,6 +1,18 @@
 # api-biwengeR
 
-Funciones en R que permite el raspado de una sesión As Biwenger
+Funciones en R que permite el raspado de una sesión As Biwenger. La única dependencia es la libreria `httr`
+
+### Descargar/Cargar Funciones.
+
+Si deseamos descargar el fichero con las funciones en nuestro terminal:
+
+`download.file("https://raw.githubusercontent.com/Aulide81/api-biwengeR/main/code/functions.R", destfile = "biwengeR.R")`
+`file.show("biwengeR.R")`
+
+Si deseamos cargar las funciones en nuestra sesión de R:
+
+ `source("https://raw.githubusercontent.com/Aulide81/api-biwengeR/main/code/functions.R")` 
+ list()
 
 ### Obtener token.
 
