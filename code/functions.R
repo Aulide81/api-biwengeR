@@ -126,7 +126,6 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
       }else{
         
         # Los bonus de jornada
-        
         mov <- div$content
         jornada <- mov$round$name
         
@@ -144,16 +143,13 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
             balance[[resultado$user$name]] <- c(balance[[resultado$user$name]], bonus)
             
           }
-          
         }
-        
       }
     }
-      
-    }
+  }
     OFFSET<-OFFSET+step
     Sys.sleep(15)
-  }
+}
   
   return(balance)
 }
