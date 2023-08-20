@@ -71,7 +71,7 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
   })
   names(balance)<-members$Name
   
-  url<-"https://biwenger.as.com/api/v2/league//__league__/board?offset=__OFFSET__&limit=__step__"
+  url<-"https://biwenger.as.com/api/v2/league/__league__/board?offset=__OFFSET__&limit=__step__"
   url<-gsub("__league__",list_ids$id_league,url)
   url<-gsub("__step__",step,url)
   
