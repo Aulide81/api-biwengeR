@@ -152,7 +152,7 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
     }
   }
     OFFSET<-OFFSET+step
-    Sys.sleep(15)
+    Sys.sleep(10)
 }
   
   return(balance)
