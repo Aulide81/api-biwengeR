@@ -64,9 +64,10 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
   
   # Inicializamos el balance
   amount_init<-amount_init
+  create_date <- attr(members,"create_date")
   balance<-lapply(members$Name, function(p){
     m <- c(amount_init)
-    names(m) <- attr(members,"create_date")
+    names(m) <- create_date
     return(m)
   })
   names(balance)<-members$Name
@@ -89,7 +90,7 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
     
     for (div in lista){
       
-      if (div$type=="leagueReset") {
+      if (div$type=="leagueReset" | div$date <= create_date) {
         continue<-FALSE
         break
       }
