@@ -80,7 +80,6 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
   continue<-TRUE
   while (continue){
     
-    #url<-gsub("__OFFSET__",OFFSET,url)
     response = GET( gsub("__OFFSET__",OFFSET,url), 
                    add_headers(authorization = paste('Bearer', token), 
                                `x-league` = list_ids$id_league, 
@@ -153,9 +152,11 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
     }
   }
     OFFSET<-OFFSET+step
-    if (length(lista) < step) {
-      continue <- FALSE
-    }
+    
+    #if (length(lista) < step) {
+    #  continue <- FALSE
+    #}
+    
     Sys.sleep(10)
 }
   
