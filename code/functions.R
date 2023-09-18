@@ -90,7 +90,7 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
     
     for (div in lista){
       
-      if (div$type=="leagueReset" | div$date <= create_date) {
+      if ( (div$type %in% c("leagueReset", "leagueWelcome")) | (length(lista) < step) ) {
         continue<-FALSE
         break
       }
