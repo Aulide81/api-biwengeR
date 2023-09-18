@@ -90,7 +90,7 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
     
     for (div in lista){
       
-      if ( (div$type %in% c("leagueReset", "leagueWelcome")) | (length(lista) < step) ) {
+      if ( div$type %in% c("leagueReset", "leagueWelcome") ) {
         continue<-FALSE
         break
       }
@@ -153,6 +153,9 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
     }
   }
     OFFSET<-OFFSET+step
+    if (length(lista) < step) {
+      continue <- FALSE
+    }
     Sys.sleep(10)
 }
   
