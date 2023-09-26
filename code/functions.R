@@ -54,7 +54,7 @@ get_members<-function(token, list_ids){
       "icon"=paste0("https://cdn.biwenger.com/",p$icon))
   })|>t()|>data.frame()
   
-  miembros<-structure(miembros,"create_date"=lista$data$created)
+  miembros<-structure(miembros,"create_date"=lista$data$created, "icon_league"=icon_league)
   
   return(miembros)
   
