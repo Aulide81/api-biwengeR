@@ -137,8 +137,9 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
           
           if (jornada %in% names(balance[[resultado$user$name]])){
             
-            bonus<-c(resultado$bonus)
-            balance[[resultado$user$name]][jornada] <- bonus
+            #bonus<-c(resultado$bonus)
+            #balance[[resultado$user$name]][jornada] <- bonus
+            dummy=1
             
           }else{
             
