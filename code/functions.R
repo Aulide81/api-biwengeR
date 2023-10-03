@@ -53,11 +53,11 @@ get_members<-function(token, list_ids){
       "Value"=p$teamValue,
       "icon"=paste0("https://cdn.biwenger.com/",p$icon))
   })|>t()|>data.frame()
-  
+
+  rownames(miembros) <- miembros$Id
   miembros<-structure(miembros,"create_date"=lista$data$created, "icon_league"=icon_league)
   
-  return(miembros)
-  
+  return(miembros)  
 }
 
 get_movements<-function(token, list_ids, members, amount_init=50000000, step=500){
@@ -73,18 +73,18 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
     return(m)
   })
   names(balance)<-members$Id
-
+  
   # Preparamos la url
   url<-"https://biwenger.as.com/api/v2/league/__league__/board?offset=__OFFSET__&limit=__step__"
   url<-gsub("__league__", list_ids$id_league, url)
   url<-gsub("__step__", step, url)
-
+  
   
   OFFSET <- 0 # inicio de la ventana a cargar
   continue <- TRUE # Bandera del bucle
   
   # tipos de movimientos a raspar
-  tipos <- c("transfer","market", "roundFinished","clauseIncrement")
+  tipos <- c("transfer","market", "exchange","clauseIncrement","roundFinished")
   
   # Comienza el bucle
   while (continue){
@@ -95,7 +95,6 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
                                 `x-league` = list_ids$id_league, 
                                 `x-user` = list_ids$id_user))
     lista<-content(response)$data
-
     
     for (div in lista){
       
@@ -137,7 +136,48 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
             position<-position+1
           }
           
-        } else if (tipo %in% c("transfer","market")) {
+        }else if (tipo %in% c("exchange")) {
+          
+          position<-1
+          date_div <- div$date
+          mov <- div$content
+          
+          
+          if ('from' %in% names(mov)){
+            id_user <- as.character(mov$from$id)
+            
+            if(id_user %in% members_Id){
+              
+              if (date_div %in% names(balance[[id_user]])){
+                amount<-c(-mov$amount)
+                names(amount)<- (date_div + position)
+                balance[[id_user]]<-c(balance[[id_user]],amount)
+              }else{
+                amount<-c(-mov$amount)
+                names(amount)<- (date_div)
+                balance[[id_user]]<-c(balance[[id_user]],amount)
+              }
+            }
+          }
+          
+          if ('to' %in% names(mov)){
+            id_user <- as.character(mov$to$id)
+            
+            if(id_user %in% members_Id){
+              
+              if (date_div %in% names(balance[[id_user]])){
+                amount<-c(mov$amount)
+                names(amount)<- (date_div + position)
+                balance[[id_user]]<-c(balance[[id_user]],amount)
+              }else{
+                amount<-c(mov$amount)
+                names(amount)<- (date_div)
+                balance[[id_user]]<-c(balance[[id_user]],amount)
+              }
+            }
+          }
+          
+        }else if (tipo %in% c("transfer","market")) {
           
           position<-1
           date_div <- div$date
@@ -219,7 +259,7 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
     #  continue <- FALSE
     #}
     
-    Sys.sleep(10)
+    Sys.sleep(5)
   }
   return(balance)
 }
