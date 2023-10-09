@@ -62,6 +62,148 @@ get_members<-function(token, list_ids){
 
 get_movements<-function(token, list_ids, members, amount_init=50000000, step=500){
   
+  
+  # funcion que raspa el aumento de clausula.
+  increment_scrap <- function(){
+    
+    position<-1
+    date_div <- div$date
+    
+    for(mov in div$content){
+      
+      id_user <- as.character(mov$user$id)
+      
+      if (id_user %in% members_Id){
+        
+        if ( date_div %in% names(balance[[id_user]]) ){
+          
+          amount<-c(-mov$amount)
+          names(amount) <- (date_div + position)
+          balance[[id_user]]<<-c(balance[[id_user]],amount)
+          
+        }else{
+          
+          amount<-c(-mov$amount)
+          names(amount)<- (date_div)
+          balance[[id_user]]<<-c(balance[[id_user]],amount)
+          
+        }
+      }
+      position<-position+1
+    }
+  }
+  # funcion que raspa el intercambio.
+  exchange_scrap <- function(){
+    
+    position<-1
+    date_div <- div$date
+    mov <- div$content
+    
+    
+    if ('from' %in% names(mov)){
+      id_user <- as.character(mov$from$id)
+      
+      if(id_user %in% members_Id){
+        
+        if (date_div %in% names(balance[[id_user]])){
+          amount<-c(-mov$amount)
+          names(amount)<- (date_div + position)
+          balance[[id_user]]<<-c(balance[[id_user]],amount)
+        }else{
+          amount<-c(-mov$amount)
+          names(amount)<- (date_div)
+          balance[[id_user]]<<-c(balance[[id_user]],amount)
+        }
+      }
+    }
+    
+    if ('to' %in% names(mov)){
+      id_user <- as.character(mov$to$id)
+      
+      if(id_user %in% members_Id){
+        
+        if (date_div %in% names(balance[[id_user]])){
+          amount<-c(mov$amount)
+          names(amount)<- (date_div + position)
+          balance[[id_user]]<<-c(balance[[id_user]],amount)
+        }else{
+          amount<-c(mov$amount)
+          names(amount)<- (date_div)
+          balance[[id_user]]<<-c(balance[[id_user]],amount)
+        }
+      }
+    }
+  }
+  # funcion que raspa compra/venta.
+  transfer_scrap <- function(){
+    
+    position<-1
+    date_div <- div$date
+    
+    for(mov in div$content){
+      
+      # Existe comprador
+      if ('to' %in% names(mov)){
+        
+        id_user <- as.character(mov$to$id)
+        
+        if(id_user %in% members_Id){
+          
+          if (date_div %in% names(balance[[id_user]])){
+            amount<-c(-mov$amount)
+            names(amount)<- (date_div + position)
+            balance[[id_user]]<<-c(balance[[id_user]],amount)
+          }else{
+            amount<-c(-mov$amount)
+            names(amount)<- (date_div)
+            balance[[id_user]]<<-c(balance[[id_user]],amount)
+          }
+        }
+      }
+      
+      # Existe vendedor
+      if ('from' %in% names(mov)){
+        
+        id_user <- as.character(mov$from$id)
+        
+        if(id_user %in% members_Id){
+          
+          if (date_div %in% names(balance[[id_user]])){
+            amount<-c(mov$amount)
+            names(amount)<- (date_div + position)
+            balance[[id_user]]<<-c(balance[[id_user]],amount)
+          }else{
+            amount<-c(mov$amount)
+            names(amount)<- (date_div)
+            balance[[id_user]]<<-c(balance[[id_user]],amount)
+          }
+        }
+      }
+      position<-position + 1
+    }
+  }
+  # funcion que raspa los bonus de la jornada
+  bonus_scrap <- function(){
+    
+    mov <- div$content
+    jornada <- mov$round$name
+    
+    for (resultado in mov$results){
+      
+      id_user <- as.character(resultado$user$id)
+      
+      if (id_user %in% members_Id) {
+        
+        if (!(jornada %in% names( balance[[id_user]]))){
+          
+          bonus <- ifelse(is.null(resultado$bonus), 0, resultado$bonus)
+          names(bonus) <- jornada
+          balance[[id_user]] <<- c(balance[[id_user]], bonus)
+        } 
+      }
+    }
+  }
+  
   # Inicializamos el balance
   amount_init<-amount_init
   create_date <- attr(members,"create_date")
@@ -84,7 +226,7 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
   continue <- TRUE # Bandera del bucle
   
   # tipos de movimientos a raspar
-  tipos <- c("transfer","market", "exchange","clauseIncrement","roundFinished")
+  #tipos <- c("transfer","market", "exchange","clauseIncrement","roundFinished")
   
   # Comienza el bucle
   while (continue){
@@ -98,159 +240,17 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
     
     for (div in lista){
       
-      tipo <- div$type
-      
-      if ( tipo %in% c("leagueReset", "leagueWelcome") ) {
+      if ( div$type %in% c("leagueReset", "leagueWelcome") ) {
         continue<-FALSE
         break
       }
       
-      if (tipo %in% tipos){
-        
-        if (tipo %in% c("clauseIncrement")){
-          
-          position<-1
-          date_div <- div$date
-          
-          for(mov in div$content){
-            
-            id_user <- as.character(mov$user$id)
-            
-            if (id_user %in% members_Id){
-              
-              if ( date_div %in% names(balance[[id_user]]) ){
-                
-                amount<-c(-mov$amount)
-                names(amount) <- (date_div + position)
-                balance[[id_user]]<-c(balance[[id_user]],amount)
-                
-              }else{
-                
-                amount<-c(-mov$amount)
-                names(amount)<- (date_div)
-                balance[[id_user]]<-c(balance[[id_user]],amount)
-                
-              }
-            }
-            
-            position<-position+1
-          }
-          
-        }else if (tipo %in% c("exchange")) {
-          
-          position<-1
-          date_div <- div$date
-          mov <- div$content
-          
-          
-          if ('from' %in% names(mov)){
-            id_user <- as.character(mov$from$id)
-            
-            if(id_user %in% members_Id){
-              
-              if (date_div %in% names(balance[[id_user]])){
-                amount<-c(-mov$amount)
-                names(amount)<- (date_div + position)
-                balance[[id_user]]<-c(balance[[id_user]],amount)
-              }else{
-                amount<-c(-mov$amount)
-                names(amount)<- (date_div)
-                balance[[id_user]]<-c(balance[[id_user]],amount)
-              }
-            }
-          }
-          
-          if ('to' %in% names(mov)){
-            id_user <- as.character(mov$to$id)
-            
-            if(id_user %in% members_Id){
-              
-              if (date_div %in% names(balance[[id_user]])){
-                amount<-c(mov$amount)
-                names(amount)<- (date_div + position)
-                balance[[id_user]]<-c(balance[[id_user]],amount)
-              }else{
-                amount<-c(mov$amount)
-                names(amount)<- (date_div)
-                balance[[id_user]]<-c(balance[[id_user]],amount)
-              }
-            }
-          }
-          
-        }else if (tipo %in% c("transfer","market")) {
-          
-          position<-1
-          date_div <- div$date
-          
-          for(mov in div$content){
-            
-            # Existe comprador
-            if ('to' %in% names(mov)){
-              
-              id_user <- as.character(mov$to$id)
-              
-              if(id_user %in% members_Id){
-                
-                if (date_div %in% names(balance[[id_user]])){
-                  amount<-c(-mov$amount)
-                  names(amount)<- (date_div + position)
-                  balance[[id_user]]<-c(balance[[id_user]],amount)
-                }else{
-                  amount<-c(-mov$amount)
-                  names(amount)<- (date_div)
-                  balance[[id_user]]<-c(balance[[id_user]],amount)
-                }
-              }
-            }
-            
-            # Existe vendedor
-            if ('from' %in% names(mov)){
-              
-              id_user <- as.character(mov$from$id)
-              
-              if(id_user %in% members_Id){
-                
-                if (date_div %in% names(balance[[id_user]])){
-                  amount<-c(mov$amount)
-                  names(amount)<- (date_div + position)
-                  balance[[id_user]]<-c(balance[[id_user]],amount)
-                }else{
-                  amount<-c(mov$amount)
-                  names(amount)<- (date_div)
-                  balance[[id_user]]<-c(balance[[id_user]],amount)
-                }
-              }
-            }
-            position<-position + 1
-          }
-        } else {
-          
-          # Los bonus de jornada
-          mov <- div$content
-          jornada <- mov$round$name
-          
-          for (resultado in mov$results){
-            
-            id_user <- as.character(resultado$user$id)
-            
-            if (id_user %in% members_Id) {
-              
-              if (jornada %in% names( balance[[id_user]])){
-                
-                #bonus<-c(resultado$bonus)
-                #balance[[resultado$user$name]][jornada] <- bonus
-                dummy=1
-                
-              }else{
-                
-                bonus <- ifelse(is.null(resultado$bonus), 0, resultado$bonus)
-                names(bonus) <- jornada
-                balance[[id_user]] <- c(balance[[id_user]], bonus)
-              }
-            }
-          }
-        }
-      }
+      switch(div$type,
+             clauseIncrement=increment_scrap(),
+             exchange=exchange_scrap(),
+             transfer=transfer_scrap(),
+             market=transfer_scrap(),
+             roundFinished=bonus_scrap())
     }
     
     OFFSET<-OFFSET+step
