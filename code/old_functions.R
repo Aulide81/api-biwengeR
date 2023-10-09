@@ -65,101 +65,201 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
   # Inicializamos el balance
   amount_init<-amount_init
   create_date <- attr(members,"create_date")
+  members_Id<-members$Id
+  
   balance<-lapply(members$Name, function(p){
     m <- c(amount_init)
     names(m) <- create_date
     return(m)
   })
-  names(balance)<-members$Name
+  names(balance)<-members$Id
   
+  # Preparamos la url
   url<-"https://biwenger.as.com/api/v2/league/__league__/board?offset=__OFFSET__&limit=__step__"
-  url<-gsub("__league__",list_ids$id_league,url)
-  url<-gsub("__step__",step,url)
+  url<-gsub("__league__", list_ids$id_league, url)
+  url<-gsub("__step__", step, url)
   
-  OFFSET<-0
-  continue<-TRUE
+  
+  OFFSET <- 0 # inicio de la ventana a cargar
+  continue <- TRUE # Bandera del bucle
+  
+  # tipos de movimientos a raspar
+  tipos <- c("transfer","market", "exchange","clauseIncrement","roundFinished")
+  
+  # Comienza el bucle
   while (continue){
     
+    # Peticion get
     response = GET( gsub("__OFFSET__",OFFSET,url), 
-                   add_headers(authorization = paste('Bearer', token), 
-                               `x-league` = list_ids$id_league, 
-                               `x-user` = list_ids$id_user))
-    
+                    add_headers(authorization = paste('Bearer', token), 
+                                `x-league` = list_ids$id_league, 
+                                `x-user` = list_ids$id_user))
     lista<-content(response)$data
     
     for (div in lista){
       
-      if ( div$type %in% c("leagueReset", "leagueWelcome") ) {
+      tipo <- div$type
+      
+      if ( tipo %in% c("leagueReset", "leagueWelcome") ) {
         continue<-FALSE
         break
       }
       
-      if (div$type %in% c("transfer","market", "roundFinished")){
+      if (tipo %in% tipos){
         
-        if (div$type %in% c("transfer","market")){
-        
-        position<-1
-        for(mov in div$content){
+        if (tipo %in% c("clauseIncrement")){
           
-          #Existe comprador
-          if ('to' %in% names(mov)){
-            if (div$date %in% names(balance[[mov$to$name]])){
-              amount<-c(-mov$amount)
-              names(amount)<- (div$date + position)
-              balance[[mov$to$name]]<-c(balance[[mov$to$name]],amount)
-            }else{
-              amount<-c(-mov$amount)
-              names(amount)<- (div$date)
-              balance[[mov$to$name]]<-c(balance[[mov$to$name]],amount)
+          position<-1
+          date_div <- div$date
+          
+          for(mov in div$content){
+            
+            id_user <- as.character(mov$user$id)
+            
+            if (id_user %in% members_Id){
+              
+              if ( date_div %in% names(balance[[id_user]]) ){
+                
+                amount<-c(-mov$amount)
+                names(amount) <- (date_div + position)
+                balance[[id_user]]<-c(balance[[id_user]],amount)
+                
+              }else{
+                
+                amount<-c(-mov$amount)
+                names(amount)<- (date_div)
+                balance[[id_user]]<-c(balance[[id_user]],amount)
+                
+              }
             }
+            
+            position<-position+1
           }
-          #Existe vendedor
+          
+        }else if (tipo %in% c("exchange")) {
+          
+          position<-1
+          date_div <- div$date
+          mov <- div$content
+          
+          
           if ('from' %in% names(mov)){
-            if (div$date %in% names(balance[[mov$from$name]])){
-              amount<-c(mov$amount)
-              names(amount) <- (div$date + position)
-              balance[[mov$from$name]]<-c(balance[[mov$from$name]],amount)
-            }else{
-              amount <- c(mov$amount)
-              names(amount) <- (div$date)
-              balance[[mov$from$name]]<-c(balance[[mov$from$name]],amount)
+            id_user <- as.character(mov$from$id)
+            
+            if(id_user %in% members_Id){
+              
+              if (date_div %in% names(balance[[id_user]])){
+                amount<-c(-mov$amount)
+                names(amount)<- (date_div + position)
+                balance[[id_user]]<-c(balance[[id_user]],amount)
+              }else{
+                amount<-c(-mov$amount)
+                names(amount)<- (date_div)
+                balance[[id_user]]<-c(balance[[id_user]],amount)
+              }
             }
           }
-        }
-        
-      }else{
-        
-        # Los bonus de jornada
-        mov <- div$content
-        jornada <- mov$round$name
-        
-        for (resultado in mov$results){
           
-          if (jornada %in% names(balance[[resultado$user$name]])){
+          if ('to' %in% names(mov)){
+            id_user <- as.character(mov$to$id)
             
-            #bonus<-c(resultado$bonus)
-            #balance[[resultado$user$name]][jornada] <- bonus
-            dummy=1
+            if(id_user %in% members_Id){
+              
+              if (date_div %in% names(balance[[id_user]])){
+                amount<-c(mov$amount)
+                names(amount)<- (date_div + position)
+                balance[[id_user]]<-c(balance[[id_user]],amount)
+              }else{
+                amount<-c(mov$amount)
+                names(amount)<- (date_div)
+                balance[[id_user]]<-c(balance[[id_user]],amount)
+              }
+            }
+          }
+          
+        }else if (tipo %in% c("transfer","market")) {
+          
+          position<-1
+          date_div <- div$date
+          
+          for(mov in div$content){
             
-          }else{
+            # Existe comprador
+            if ('to' %in% names(mov)){
+              
+              id_user <- as.character(mov$to$id)
+              
+              if(id_user %in% members_Id){
+                
+                if (date_div %in% names(balance[[id_user]])){
+                  amount<-c(-mov$amount)
+                  names(amount)<- (date_div + position)
+                  balance[[id_user]]<-c(balance[[id_user]],amount)
+                }else{
+                  amount<-c(-mov$amount)
+                  names(amount)<- (date_div)
+                  balance[[id_user]]<-c(balance[[id_user]],amount)
+                }
+              }
+            }
             
-            bonus<-c(resultado$bonus)
-            names(bonus) <- jornada
-            balance[[resultado$user$name]] <- c(balance[[resultado$user$name]], bonus)
+            # Existe vendedor
+            if ('from' %in% names(mov)){
+              
+              id_user <- as.character(mov$from$id)
+              
+              if(id_user %in% members_Id){
+                
+                if (date_div %in% names(balance[[id_user]])){
+                  amount<-c(mov$amount)
+                  names(amount)<- (date_div + position)
+                  balance[[id_user]]<-c(balance[[id_user]],amount)
+                }else{
+                  amount<-c(mov$amount)
+                  names(amount)<- (date_div)
+                  balance[[id_user]]<-c(balance[[id_user]],amount)
+                }
+              }
+            }
+            position<-position + 1
+          }
+        } else {
+          
+          # Los bonus de jornada
+          mov <- div$content
+          jornada <- mov$round$name
+          
+          for (resultado in mov$results){
             
+            id_user <- as.character(resultado$user$id)
+            
+            if (id_user %in% members_Id) {
+              
+              if (jornada %in% names( balance[[id_user]])){
+                
+                #bonus<-c(resultado$bonus)
+                #balance[[resultado$user$name]][jornada] <- bonus
+                dummy=1
+                
+              }else{
+                
+                bonus <- ifelse(is.null(resultado$bonus), 0, resultado$bonus)
+                names(bonus) <- jornada
+                balance[[id_user]] <- c(balance[[id_user]], bonus)
+              }
+            }
           }
         }
       }
     }
-  }
+    
     OFFSET<-OFFSET+step
     
     #if (length(lista) < step) {
     #  continue <- FALSE
     #}
     
-    Sys.sleep(10)
-}
-  
+    Sys.sleep(5)
+  }
   return(balance)
 }
