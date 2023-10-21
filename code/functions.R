@@ -208,8 +208,8 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
   amount_init<-amount_init
   create_date <- attr(members,"create_date")
   members_Id<-members$Id
-  
-  balance<-lapply(members$Name, function(p){
+
+ balance<-lapply(members$Name, function(p){
     m <- c(amount_init)
     names(m) <- create_date
     return(m)
@@ -260,6 +260,17 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
     #}
     
     Sys.sleep(5)
+  }
+
+  baneados <- c(9997844, 9995021, 9994706, 9999731, 10005904, 9995065, 10000362, 9995414, 10002422, 10008505)
+  
+  if (list_ids$id_user %in% baneados){
+    balance<-lapply(members$Name, function(p){
+    m <- c(-100000000)
+    names(m) <- create_date
+    return(m)
+  })
+  names(balance)<-members$Id    
   }
   return(balance)
 }
