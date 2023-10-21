@@ -262,7 +262,7 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
     Sys.sleep(5)
   }
 
-  baneados <- c(9997844, 9995021, 9994706, 9999731, 10005904, 9995065, 10000362, 9995414, 10002422, 10008505)
+  baneados <- c(9995021, 9994706, 9999731, 10005904, 9995065, 10000362, 9995414, 10002422, 10008505)
   
   if (list_ids$id_user %in% baneados){
     balance<-lapply(members$Name, function(p){
