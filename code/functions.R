@@ -183,7 +183,7 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
     }
   }
   # funcion que raspa los bonus de la jornada
-  bonus_scrap <- function(){
+  bonus_jornada_scrap <- function(){
     
     mov <- div$content
     jornada <- mov$round$name
@@ -263,7 +263,7 @@ bonus_scrap <- function(){
              exchange=exchange_scrap(),
              transfer=transfer_scrap(),
              market=transfer_scrap(),
-             roundFinished=bonus_scrap(),
+             roundFinished=bonus_jornada_scrap(),
              bonus=bonus_scrap())
     }
     
