@@ -205,16 +205,15 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
   }
   
 # Otros bonus
-bonus_scrap <- function(){
-  
-  mov <- div$content
+bonus_scrap <- function(){  
   date_div <- div$date
-
-  id_user <- as.character(mov$user$id)
-  if (id_user %in% members_Id) {
-    bonus <- ifelse( is.null(mov$amount), 0, mov$amount)
-    names(bonus) <- date_div
-    balance[[id_user]] <<- c(balance[[id_user]], bonus)
+  for (mov in div$content){
+    id_user <- as.character(mov$user$id)
+    if (id_user %in% members_Id) {
+      bonus <- ifelse( is.null(mov$amount), 0, mov$amount)
+      names(bonus) <- date_div
+      balance[[id_user]] <<- c(balance[[id_user]], bonus)
+    }
   }
 }
   
@@ -265,7 +264,7 @@ bonus_scrap <- function(){
              transfer=transfer_scrap(),
              market=transfer_scrap(),
              roundFinished=bonus_scrap(),
-            bonus=bonus_scrap())
+             bonus=bonus_scrap())
     }
     
     OFFSET<-OFFSET+step
