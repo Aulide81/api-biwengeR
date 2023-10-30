@@ -212,7 +212,7 @@ bonus_scrap <- function(){
 
   id_user <- as.character(mov$user$id)
   if (id_user %in% members_Id) {
-    bonus <- ifelse( is.null(mov$amount), 0, resultado$bonus)
+    bonus <- ifelse( is.null(mov$amount), 0, mov$amount)
     names(bonus) <- date_div
     balance[[id_user]] <<- c(balance[[id_user]], bonus)
   }
