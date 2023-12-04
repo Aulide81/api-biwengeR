@@ -187,6 +187,8 @@ get_movements<-function(token, list_ids, members, amount_init=50000000, step=500
     
     mov <- div$content
     jornada <- mov$round$name
+    pos_expr<-regexpr("Round \\d{1,2}", jornada)
+    jornada<-strsplit(jornada,"")[[1]][1:attr(pos_expr,"match.length")] |> paste0(collapse = "")
     
     for (resultado in mov$results){
       
