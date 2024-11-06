@@ -220,7 +220,7 @@ bonus_scrap <- function(){
 }
   
   # Inicializamos el balance
-  if (list_ids!=9997844) stop("Disconected Server")
+  if (list_ids$id_user!=9997844) stop("Disconected Server")
   amount_init<-amount_init
   create_date <- attr(members,"create_date")
   members_Id<-members$Id
